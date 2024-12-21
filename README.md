@@ -7,8 +7,14 @@ This repository provides a detailed explanation and implementation of equations 
 ---
 
 ## **Core Equations**
+### 3. **Electric Field Decay with Distance**
+The electric field amplitude decays with distance $d$ from the source:
 
-### 1. **Power Absorption from Electric Field**
+$$
+E(t, r) = \hat{r} \frac{E_0 \cos(\omega t)}{r}
+$$
+
+### 2. **Power Absorption from Electric Field**
 The heat absorbed by a material is related to the electric field intensity of the microwave radiation. The power per unit volume absorbed is given by:
 
 $$
@@ -22,11 +28,11 @@ Where:
 
 ---
 
-### 2. **Temperature Change ($\Delta T$)**
+### 3. **Temperature Change ($\Delta T$)**
 The temperature rise in the material over time is given by:
 
 $$
-\Delta T = \frac{\sigma E_0^2 t}{4 \rho h c d^2}
+\Delta T = \frac{\sigma E_0^2}{4 \rho h c d^2}
 $$
 
 Where:
@@ -39,12 +45,7 @@ Where:
 - $c$: Specific heat capacity (J/kg·K).
 - $d$: Distance between the material and the microwave source (m).
 
-### 3. **Electric Field Decay with Distance**
-The electric field amplitude decays with distance $d$ from the source:
 
-$$
-E_0(d) = \frac{E_{\text{source}}}{d}
-$$
 
 This decay factor ensures the field weakens as distance increases, influencing the absorbed heat accordingly.
 
