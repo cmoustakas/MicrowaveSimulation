@@ -29,7 +29,7 @@ $$
 \Delta T = \frac{\sigma E^2}{4 \rho h c} \\
 $$
 $$
-\Delta T = \frac{\sigma E_0^2  \cos(\omega t)^2 }{4 \rho h c r^2}
+\Delta T = \frac{\sigma E_0^2 }{4 \rho h c } \frac{\cos(\omega t)^2 }{r^2}
 $$
 
 Where:
