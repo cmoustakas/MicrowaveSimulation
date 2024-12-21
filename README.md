@@ -1,5 +1,6 @@
 # MicrowaveSimulation
-Graphical simulation of heat transmition through microwaves
+Graphical simulation of heat transmission through microwaves
+
 # Heat Transmission Simulation in Microwaves
 
 This repository provides a detailed explanation and implementation of equations used to model heat transmission in materials exposed to microwave radiation. The equations are derived from Maxwell's equations and material properties, such as electrical conductivity ($\sigma$), specific heat capacity ($c$), and thickness ($h$). This document explains the theoretical foundation and offers an example framework for simulating heat transmission.
