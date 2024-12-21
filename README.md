@@ -20,7 +20,7 @@ The heat absorbed by a material is related to the electric field intensity of th
 $$
 P = \frac{1}{2} \sigma E^2
 $$
----
+
 
 ### 3. **Temperature Change ($\Delta T$)**
 The temperature rise in the material over time is given by:
