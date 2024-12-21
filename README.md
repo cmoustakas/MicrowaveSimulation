@@ -32,7 +32,8 @@ Where:
 The temperature rise in the material over time is given by:
 
 $$
-\Delta T = \frac{\sigma E_0^2}{4 \rho h c d^2}
+\Delta T = \frac{\sigma E^2}{4 \rho h c}
+\Delta T = \frac{\sigma E_O^2  \cos(\omega t)^2 }{4 \rho h c r^2}
 $$
 
 Where:
