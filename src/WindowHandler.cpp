@@ -1,6 +1,6 @@
 #include "WindowHandler.hpp"
 
-#include <GL/glew.h>
+#include <GL/gl.h>
 
 #include <iostream>
 
@@ -8,11 +8,6 @@ static constexpr int kWidth = 640;
 static constexpr int kHeight = 480;
 
 namespace simulator {
-WindowHandler::WindowHandler() {
-  if (!initializeWindow()) {
-    throw std::runtime_error("Unable to initialize GLFWwindow \n");
-  }
-}
 
 WindowHandler::~WindowHandler() { glfwTerminate(); }
 
@@ -47,6 +42,14 @@ bool WindowHandler::initializeWindow() {
     return false;
   }
 
+  glEnable(GL_DEBUG_OUTPUT);
+  glDebugMessageCallback(
+      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+         const GLchar *message, const void *userParam) {
+        std::cerr << "GL Debug: " << message << std::endl;
+      },
+      nullptr);
+
   // Just to make sure the programm can be interrupted by pressing Esc
   glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GL_TRUE);
   // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide mouse
@@ -60,4 +63,5 @@ bool WindowHandler::initializeWindow() {
 
   return true;
 }
+
 } // namespace simulator
