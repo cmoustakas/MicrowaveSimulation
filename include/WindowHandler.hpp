@@ -1,6 +1,9 @@
 #pragma once
+#include <GL/glew.h>
 
 #include <GLFW/glfw3.h>
+
+#include <CameraHandler.hpp>
 
 namespace simulator {
 class WindowHandler {
@@ -17,19 +20,19 @@ public:
 
   GLFWwindow *getWindow() { return m_window; }
 
-private:
-  WindowHandler();
-  ~WindowHandler();
-
-  // Delete copy ctor and assignment
-  WindowHandler(const WindowHandler &) = delete;
-  WindowHandler &operator=(const WindowHandler &) = delete;
-
   /**
    * @brief initializeWindow
    * @return
    */
   bool initializeWindow();
+
+private:
+  WindowHandler() = default;
+  ~WindowHandler();
+
+  // Delete copy ctor and assignment
+  WindowHandler(const WindowHandler &) = delete;
+  WindowHandler &operator=(const WindowHandler &) = delete;
 
   GLFWwindow *m_window = nullptr;
 };

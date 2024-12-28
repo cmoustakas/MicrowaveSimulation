@@ -42,7 +42,7 @@ static void load_texture(std::vector<model::Texture> &texture_vec,
 
   bool load_success = false;
   GLuint texture_id;
-  if (graphics_utils::load_texture_from_image(path.C_Str(), texture_id) ==
+  if (graphics_utils::loadTextureFromImage(path.C_Str(), texture_id) ==
       graphics_utils::GraphicsRes::FAIL) {
     return;
   }
@@ -60,6 +60,8 @@ void load_model(const char *model_path, const char *textures_path,
   try {
     Assimp::Importer importer;
     aiNode *root_node = nullptr;
+    auto &mesh_vec = model.getMeshVec();
+    auto &texture_vec = model.getTextureVec();
 
     const aiScene *scene = importer.ReadFile(
         model_path, aiProcess_JoinIdenticalVertices | aiProcess_Triangulate |
@@ -71,24 +73,24 @@ void load_model(const char *model_path, const char *textures_path,
     }
 
     const size_t num_meshes = scene->mNumMeshes;
-    model.m_mesh.resize(num_meshes);
+    mesh_vec.resize(num_meshes);
 
     int indices_offset = 0;
-    model.m_mesh.resize(num_meshes);
+    mesh_vec.resize(num_meshes);
     for (size_t i = 0; i < num_meshes; ++i) {
 
       auto mesh = scene->mMeshes[i];
-      model.m_mesh[i].m_name = mesh->mName.C_Str();
+      mesh_vec[i].m_name = mesh->mName.C_Str();
 
       aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
       const auto total_textures =
           material->GetTextureCount(aiTextureType_DIFFUSE);
-      model.m_texture.reserve(total_textures);
+      texture_vec.reserve(total_textures);
 
       // Load textures
       for (size_t tex_count = 0; tex_count < total_textures; ++tex_count) {
-        load_texture(model.m_texture, model.m_mesh[i], material, textures_path,
+        load_texture(texture_vec, mesh_vec[i], material, textures_path,
                      tex_count);
       }
 
@@ -97,7 +99,7 @@ void load_model(const char *model_path, const char *textures_path,
         position.x = mesh->mVertices[v].x;
         position.y = mesh->mVertices[v].y;
         position.z = mesh->mVertices[v].z;
-        model.m_mesh[i].m_vert_positions.push_back(position);
+        mesh_vec[i].m_vert_positions.push_back(position);
 
         // Normals
         if (mesh->HasNormals()) {
@@ -105,10 +107,9 @@ void load_model(const char *model_path, const char *textures_path,
           normal.x = mesh->mNormals[v].x;
           normal.y = mesh->mNormals[v].y;
           normal.z = mesh->mNormals[v].z;
-          model.m_mesh[i].m_vert_normals.push_back(normal);
+          mesh_vec[i].m_vert_normals.push_back(normal);
         } else {
-          model.m_mesh[i].m_vert_normals.emplace_back(
-              glm::vec3(0.0f, 0.0f, 0.0f));
+          mesh_vec[i].m_vert_normals.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f));
         }
 
         // Textures
@@ -116,17 +117,17 @@ void load_model(const char *model_path, const char *textures_path,
           glm::vec2 tex_coords{};
           tex_coords.x = mesh->mTextureCoords[0][v].x;
           tex_coords.y = mesh->mTextureCoords[0][v].y;
-          model.m_mesh[i].m_tex_coords.push_back(tex_coords);
+          mesh_vec[i].m_tex_coords.push_back(tex_coords);
         } else {
-          model.m_mesh[i].m_tex_coords.emplace_back(glm::vec2(0.0f, 0.0f));
+          mesh_vec[i].m_tex_coords.emplace_back(glm::vec2(0.0f, 0.0f));
         }
       }
 
       // Faces
       for (size_t f = 0; f < mesh->mNumFaces; ++f) {
         for (size_t ind = 0; ind < mesh->mFaces[f].mNumIndices; ++ind) {
-          model.m_mesh[i].m_vert_indices.push_back(
-              mesh->mFaces[f].mIndices[ind] + indices_offset);
+          mesh_vec[i].m_vert_indices.push_back(mesh->mFaces[f].mIndices[ind] +
+                                               indices_offset);
         }
       }
     }

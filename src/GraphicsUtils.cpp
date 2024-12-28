@@ -3,27 +3,32 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
+#include <WindowHandler.hpp>
+
 namespace simulator {
 namespace graphics_utils {
 
-static void bind_VAO(GLuint &vertex_array_ID) {
-  glGenVertexArrays(1, &vertex_array_ID);
-  glBindVertexArray(vertex_array_ID);
+static void bindVAO(GLuint &vertex_array_id) {
+  glGenVertexArrays(1, &vertex_array_id);
+  glBindVertexArray(vertex_array_id);
+  assert(vertex_array_id != 0);
 }
 
 template <typename T>
-void bind_VBO(GLuint &vertex_buffer_ID, std::vector<T> &buffer) {
-  glGenBuffers(1, &vertex_buffer_ID);
-  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_ID);
+void bindVBO(GLuint &vertex_buffer_id, std::vector<T> &buffer) {
+  glGenBuffers(1, &vertex_buffer_id);
+  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
   glBufferData(GL_ARRAY_BUFFER, buffer.size() * sizeof(T), &buffer[0],
                GL_STATIC_DRAW);
 }
 
-static GraphicsRes compile_shader(GLuint &shaderID, const char *path) {
+static GraphicsRes compile_shader(GLuint &shader_id, const char *path) {
   // Read the Vertex Shader code from the file
   std::string shader_code;
   std::ifstream shader_stream(path, std::ios::in);
@@ -35,21 +40,21 @@ static GraphicsRes compile_shader(GLuint &shaderID, const char *path) {
   shader_code = sstr.str();
   shader_stream.close();
 
-  GLint Result = GL_FALSE;
+  GLint result = GL_FALSE;
   int info_log_len;
 
   // Compile Shader
   std::cout << "Compiling shader : " << path << " \n";
   char const *shader_ptr = shader_code.c_str();
-  glShaderSource(shaderID, 1, &shader_ptr, NULL);
-  glCompileShader(shaderID);
+  glShaderSource(shader_id, 1, &shader_ptr, NULL);
+  glCompileShader(shader_id);
 
-  glGetShaderiv(shaderID, GL_COMPILE_STATUS, &Result);
-  glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &info_log_len);
+  glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
+  glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &info_log_len);
 
   if (info_log_len > 0) {
     std::vector<char> error_message(info_log_len + 1);
-    glGetShaderInfoLog(shaderID, info_log_len, NULL, &error_message[0]);
+    glGetShaderInfoLog(shader_id, info_log_len, NULL, &error_message[0]);
     std::cout << &error_message[0];
     return GraphicsRes::FAIL;
   }
@@ -57,7 +62,7 @@ static GraphicsRes compile_shader(GLuint &shaderID, const char *path) {
   return GraphicsRes::SUCCESS;
 }
 
-GraphicsRes load_texture_from_image(std::string file_name, GLuint &texture_id) {
+GraphicsRes loadTextureFromImage(std::string file_name, GLuint &texture_id) {
 
   size_t position = file_name.find_last_of("\\");
   file_name = file_name.substr(position + 1);
@@ -105,15 +110,15 @@ GraphicsRes load_texture_from_image(std::string file_name, GLuint &texture_id) {
   return GraphicsRes::SUCCESS;
 }
 
-GraphicsRes load_shaders(const char *fragment_shader_path,
-                         const char *vertex_shader_path, GLuint &program_id) {
+GraphicsRes loadShaders(const char *fragment_shader_path,
+                        const char *vertex_shader_path, GLuint &program_id) {
 
-  GLuint vertex_shader_Id = glCreateShader(GL_VERTEX_SHADER);
-  GLuint fragment_shader_Id = glCreateShader(GL_FRAGMENT_SHADER);
+  GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
+  GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
 
-  if (compile_shader(vertex_shader_Id, vertex_shader_path) ==
+  if (compile_shader(vertex_shader_id, vertex_shader_path) ==
           GraphicsRes::FAIL ||
-      compile_shader(fragment_shader_Id, fragment_shader_path) ==
+      compile_shader(fragment_shader_id, fragment_shader_path) ==
           GraphicsRes::FAIL) {
     std::cerr << "Couldn't compile Shaders\n";
     return GraphicsRes::FAIL;
@@ -121,8 +126,8 @@ GraphicsRes load_shaders(const char *fragment_shader_path,
 
   // Linking vertex shader and fragment shader to copmlete the pipeline
   program_id = glCreateProgram();
-  glAttachShader(program_id, vertex_shader_Id);
-  glAttachShader(program_id, fragment_shader_Id);
+  glAttachShader(program_id, vertex_shader_id);
+  glAttachShader(program_id, fragment_shader_id);
   glLinkProgram(program_id);
 
   GLint Result;
@@ -138,50 +143,101 @@ GraphicsRes load_shaders(const char *fragment_shader_path,
     return GraphicsRes::FAIL;
   }
 
-  glDetachShader(program_id, vertex_shader_Id);
-  glDetachShader(program_id, fragment_shader_Id);
+  glDetachShader(program_id, vertex_shader_id);
+  glDetachShader(program_id, fragment_shader_id);
 
-  glDeleteShader(vertex_shader_Id);
-  glDeleteShader(fragment_shader_Id);
+  glDeleteShader(vertex_shader_id);
+  glDeleteShader(fragment_shader_id);
 
   return GraphicsRes::SUCCESS;
 }
 
-void bind_to_GPU(model::Model &current_model) {
-  for (size_t index = 0; index < current_model.m_mesh.size(); ++index) {
-    bind_VAO(current_model.m_mesh[index].m_VAO);
+void bindToGPU(model::Model &current_model) {
+  auto &mesh_vec = current_model.getMeshVec();
 
-    bind_VBO(current_model.m_mesh[index].m_VBO_pos,
-             current_model.m_mesh[index].m_vert_positions);
+  for (size_t index = 0; index < mesh_vec.size(); ++index) {
+    bindVAO(mesh_vec[index].m_VAO);
+
+    bindVBO(mesh_vec[index].m_VBO_pos, mesh_vec[index].m_vert_positions);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                           (void *)0);
 
-    bind_VBO(current_model.m_mesh[index].m_VBO_norm,
-             current_model.m_mesh[index].m_vert_normals);
+    bindVBO(mesh_vec[index].m_VBO_norm, mesh_vec[index].m_vert_normals);
 
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                           (void *)0);
 
-    bind_VBO(current_model.m_mesh[index].m_VBO_tex,
-             current_model.m_mesh[index].m_tex_coords);
+    bindVBO(mesh_vec[index].m_VBO_tex, mesh_vec[index].m_tex_coords);
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),
                           (void *)0);
 
-    glGenBuffers(1, &current_model.m_mesh[index].m_EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, current_model.m_mesh[index].m_EBO);
+    glGenBuffers(1, &mesh_vec[index].m_EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_vec[index].m_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(unsigned int) *
-                     current_model.m_mesh[index].m_vert_indices.size(),
-                 &current_model.m_mesh[index].m_vert_indices[0],
-                 GL_STATIC_DRAW);
+                 sizeof(unsigned int) * mesh_vec[index].m_vert_indices.size(),
+                 &mesh_vec[index].m_vert_indices[0], GL_STATIC_DRAW);
 
     glBindVertexArray(0);
   }
+}
+
+GraphicsRes render(model::Model &model, GLuint view_id,
+                   glm::mat4 &view_matrix) {
+
+  view_matrix = glm::translate(view_matrix, model.getPosition());
+  glUniformMatrix4fv(view_id, 1, GL_FALSE, &view_matrix[0][0]);
+  auto &mesh_vec = model.getMeshVec();
+
+  for (size_t i = 0; i < mesh_vec.size(); ++i) {
+
+    glBindTexture(
+        GL_TEXTURE_2D,
+        mesh_vec[i].m_tex_handle); // Bind texture for the current mesh.
+
+    glBindVertexArray(mesh_vec[i].m_VAO);
+
+    glDrawElements(GL_TRIANGLES, (GLsizei)mesh_vec[i].m_vert_indices.size(),
+                   GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+  }
+
+  return GraphicsRes::SUCCESS;
+}
+
+void debugOpenGL() {
+  GLenum error;
+  while ((error = glGetError()) != GL_NO_ERROR) {
+    std::cerr << "OpenGL Error: " << error << std::endl;
+  }
+}
+
+void updateOnEvents(CameraHandler &camera, glm::vec3 *model_pos) {
+
+  constexpr float dtheta_quant = 0.1f;
+  constexpr float dfi_quant = 0.1f;
+
+  float theta = 0.f;
+  float fi = 0.f;
+  const auto window = WindowHandler::getInstance().getWindow();
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    theta += dtheta_quant;
+  } else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+    theta -= dtheta_quant;
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+    fi += dfi_quant;
+  } else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+    fi -= dfi_quant;
+  }
+
+  camera.updateCamera(theta, fi, model_pos);
 }
 
 } // namespace graphics_utils

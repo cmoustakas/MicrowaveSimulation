@@ -1,6 +1,9 @@
 #pragma once
 
+#include <GL/glew.h>
+
 #include <GL/gl.h>
+
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
@@ -27,9 +30,32 @@ struct Texture {
   std::string m_image_name;
 };
 
-struct Model {
+struct Material {
+  float m_density = 0.f;                 ///< kg/m^3
+  float m_thickness = 0.f;               ///< m
+  float m_heat_capacity = 0.f;           ///< J/kg*K
+  float m_electrical_conductivity = 0.f; ///< S/m
+};
+
+class Model {
+public:
+  Model() = default;
+  Model(Material &material);
+
+  void updatePosition(const glm::vec3 &new_position);
+  void calculateTemperature(float timestamp);
+
+  std::vector<Mesh> &getMeshVec() { return m_mesh; }
+  std::vector<Texture> &getTextureVec() { return m_texture; }
+  glm::vec3 &getPosition() { return m_position; }
+  void setPosition(const glm::vec3 &position) { m_position = position; }
+
+private:
+  glm::vec3 m_position{};
+  float m_temperature = 0.f; ///< K
   std::vector<Mesh> m_mesh;
   std::vector<Texture> m_texture;
+  Material m_material;
 };
 
 } // namespace model
