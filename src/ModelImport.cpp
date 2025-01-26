@@ -13,9 +13,8 @@ namespace simulator {
 
 constexpr GLuint kInvalid = 0xFFFFFFFF;
 
-static inline size_t
-is_image_loaded(const std::string &file_name,
-                std::vector<model::Texture> &texture_list) {
+static inline size_t isImageLoaded(const std::string &file_name,
+                                   std::vector<model::Texture> &texture_list) {
   for (size_t i = 0; i < texture_list.size(); ++i)
     if (file_name.compare(texture_list[i].m_image_name) == 0) {
       return texture_list[i].m_texture_id;
@@ -23,9 +22,9 @@ is_image_loaded(const std::string &file_name,
   return kInvalid;
 };
 
-static void load_texture(std::vector<model::Texture> &texture_vec,
-                         model::Mesh &mesh, aiMaterial *material,
-                         const char *textures_path, const int tex_count) {
+static void loadTexture(std::vector<model::Texture> &texture_vec,
+                        model::Mesh &mesh, aiMaterial *material,
+                        const char *textures_path, const int tex_count) {
 
   aiString string_postfix;
   material->GetTexture(aiTextureType_DIFFUSE, tex_count, &string_postfix);
@@ -33,8 +32,7 @@ static void load_texture(std::vector<model::Texture> &texture_vec,
   aiString path(textures_path);
   path.Append(string_postfix.C_Str());
 
-  auto already_loaded =
-      (is_image_loaded(path.C_Str(), texture_vec) != kInvalid);
+  auto already_loaded = (isImageLoaded(path.C_Str(), texture_vec) != kInvalid);
 
   if (already_loaded) {
     return;
@@ -55,8 +53,8 @@ static void load_texture(std::vector<model::Texture> &texture_vec,
   mesh.m_tex_handle = texture_id;
 }
 
-void load_model(const char *model_path, const char *textures_path,
-                model::Model &model) {
+void loadModel(const char *model_path, const char *textures_path,
+               model::Model &model) {
   try {
     Assimp::Importer importer;
     aiNode *root_node = nullptr;
@@ -75,8 +73,6 @@ void load_model(const char *model_path, const char *textures_path,
     const size_t num_meshes = scene->mNumMeshes;
     mesh_vec.resize(num_meshes);
 
-    int indices_offset = 0;
-    mesh_vec.resize(num_meshes);
     for (size_t i = 0; i < num_meshes; ++i) {
 
       auto mesh = scene->mMeshes[i];
@@ -90,8 +86,8 @@ void load_model(const char *model_path, const char *textures_path,
 
       // Load textures
       for (size_t tex_count = 0; tex_count < total_textures; ++tex_count) {
-        load_texture(texture_vec, mesh_vec[i], material, textures_path,
-                     tex_count);
+        loadTexture(texture_vec, mesh_vec[i], material, textures_path,
+                    tex_count);
       }
 
       for (size_t v = 0; v < mesh->mNumVertices; ++v) {
@@ -123,11 +119,22 @@ void load_model(const char *model_path, const char *textures_path,
         }
       }
 
+      std::cout << "Mesh has " << mesh->mNumFaces << " faces." << std::endl;
+
+      for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
+        const aiFace &face = mesh->mFaces[i];
+        std::cout << "Face " << i << " has " << face.mNumIndices
+                  << " indices: ";
+        for (unsigned int j = 0; j < face.mNumIndices; ++j) {
+          std::cout << face.mIndices[j] << " ";
+        }
+        std::cout << std::endl;
+      }
+
       // Faces
       for (size_t f = 0; f < mesh->mNumFaces; ++f) {
         for (size_t ind = 0; ind < mesh->mFaces[f].mNumIndices; ++ind) {
-          mesh_vec[i].m_vert_indices.push_back(mesh->mFaces[f].mIndices[ind] +
-                                               indices_offset);
+          mesh_vec[i].m_vert_indices.push_back(mesh->mFaces[f].mIndices[ind]);
         }
       }
     }
