@@ -28,7 +28,7 @@ void bindVBO(GLuint &vertex_buffer_id, std::vector<T> &buffer) {
                GL_STATIC_DRAW);
 }
 
-static GraphicsRes compile_shader(GLuint &shader_id, const char *path) {
+static GraphicsRes compileShader(GLuint &shader_id, const char *path) {
   // Read the Vertex Shader code from the file
   std::string shader_code;
   std::ifstream shader_stream(path, std::ios::in);
@@ -46,7 +46,7 @@ static GraphicsRes compile_shader(GLuint &shader_id, const char *path) {
   // Compile Shader
   std::cout << "Compiling shader : " << path << " \n";
   char const *shader_ptr = shader_code.c_str();
-  glShaderSource(shader_id, 1, &shader_ptr, NULL);
+  glShaderSource(shader_id, 1, &shader_ptr, nullptr);
   glCompileShader(shader_id);
 
   glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
@@ -54,7 +54,7 @@ static GraphicsRes compile_shader(GLuint &shader_id, const char *path) {
 
   if (info_log_len > 0) {
     std::vector<char> error_message(info_log_len + 1);
-    glGetShaderInfoLog(shader_id, info_log_len, NULL, &error_message[0]);
+    glGetShaderInfoLog(shader_id, info_log_len, nullptr, &error_message[0]);
     std::cout << &error_message[0];
     return GraphicsRes::FAIL;
   }
@@ -116,9 +116,9 @@ GraphicsRes loadShaders(const char *fragment_shader_path,
   GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
   GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
 
-  if (compile_shader(vertex_shader_id, vertex_shader_path) ==
+  if (compileShader(vertex_shader_id, vertex_shader_path) ==
           GraphicsRes::FAIL ||
-      compile_shader(fragment_shader_id, fragment_shader_path) ==
+      compileShader(fragment_shader_id, fragment_shader_path) ==
           GraphicsRes::FAIL) {
     std::cerr << "Couldn't compile Shaders\n";
     return GraphicsRes::FAIL;
@@ -138,7 +138,7 @@ GraphicsRes loadShaders(const char *fragment_shader_path,
   glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &info_log_len);
   if (info_log_len > 0) {
     std::vector<char> error_message(info_log_len + 1);
-    glGetProgramInfoLog(program_id, info_log_len, NULL, &error_message[0]);
+    glGetProgramInfoLog(program_id, info_log_len, nullptr, &error_message[0]);
     std::cerr << &error_message[0] << "\n";
     return GraphicsRes::FAIL;
   }
@@ -179,15 +179,14 @@ void bindToGPU(model::Model &current_model) {
     glGenBuffers(1, &mesh_vec[index].m_EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh_vec[index].m_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(unsigned int) * mesh_vec[index].m_vert_indices.size(),
-                 &mesh_vec[index].m_vert_indices[0], GL_STATIC_DRAW);
+                 sizeof(GLuint) * mesh_vec[index].m_vert_indices.size(),
+                 mesh_vec[index].m_vert_indices.data(), GL_STATIC_DRAW);
 
     glBindVertexArray(0);
   }
 }
 
-GraphicsRes render(model::Model &model, GLuint view_id,
-                   glm::mat4 &view_matrix) {
+GraphicsRes render(model::Model &model, GLuint view_id, glm::mat4 view_matrix) {
 
   view_matrix = glm::translate(view_matrix, model.getPosition());
   glUniformMatrix4fv(view_id, 1, GL_FALSE, &view_matrix[0][0]);
@@ -204,7 +203,7 @@ GraphicsRes render(model::Model &model, GLuint view_id,
     glDrawElements(GL_TRIANGLES, (GLsizei)mesh_vec[i].m_vert_indices.size(),
                    GL_UNSIGNED_INT, 0);
 
-    glBindVertexArray(0);
+    //    glBindVertexArray(0);
   }
 
   return GraphicsRes::SUCCESS;
