@@ -41,7 +41,7 @@ void bindToGPU(model::Model &model);
  * @param model
  * @return
  */
-GraphicsRes render(model::Model &model, GLuint view_id, glm::mat4 &view_matrix);
+GraphicsRes render(model::Model &model, GLuint view_id, glm::mat4 view_matrix);
 
 /**
  * @brief debugOpenGL

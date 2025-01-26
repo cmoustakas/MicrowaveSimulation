@@ -8,6 +8,6 @@ namespace simulator {
  * @param textures_path
  * @param model
  */
-void load_model(const char *model_path, const char *textures_path,
+void loadModel(const char *model_path, const char *textures_path,
                 model::Model &model);
 } // namespace simulator

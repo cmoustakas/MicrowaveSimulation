@@ -11,9 +11,18 @@
 
 namespace fs = std::filesystem;
 static void resolvePaths(fs::path &shaders, fs::path &models) {
-  fs::path proj_path =
-      fs::canonical(fs::current_path()).parent_path() / "MicrowaveSimulation";
+  fs::path proj_path = fs::canonical(fs::current_path());
+  fs::path candidate_path;
+  do {
+    proj_path = proj_path.parent_path();
+    candidate_path = proj_path / "MicrowaveSimulation";
 
+    if (proj_path == proj_path.root_path()) {
+      throw std::runtime_error("Can't resolve the project path");
+    }
+  } while (!fs::exists(candidate_path));
+
+  proj_path = candidate_path;
   assert(fs::exists(proj_path));
   assert(fs::is_directory(proj_path));
 
@@ -64,7 +73,7 @@ void runSimulation() {
   simulator::EngineConfig engine_cfg = configureEngine(shaders_path);
 
   // Models are gonna be moved(&&) to the Engine
-  fs::path model_path = models_path / "porsche911.obj";
+  fs::path model_path = models_path / "model.obj";
   fs::path texture_path = models_path / "";
   assert(fs::exists(model_path));
 
@@ -73,7 +82,7 @@ void runSimulation() {
   models.resize(kTotalModels);
 
   for (auto &m : models) {
-    simulator::load_model(model_path.c_str(), texture_path.c_str(), m);
+    simulator::loadModel(model_path.c_str(), texture_path.c_str(), m);
     simulator::graphics_utils::bindToGPU(m);
   }
 

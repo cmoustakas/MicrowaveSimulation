@@ -4,8 +4,8 @@
 
 #include <iostream>
 
-static constexpr int kWidth = 640;
-static constexpr int kHeight = 480;
+static constexpr int kWidth = 1280;
+static constexpr int kHeight = 720;
 
 namespace simulator {
 
@@ -59,7 +59,7 @@ bool WindowHandler::initializeWindow() {
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
-  glEnable(GL_CULL_FACE);
+  glDisable(GL_CULL_FACE);
 
   return true;
 }
