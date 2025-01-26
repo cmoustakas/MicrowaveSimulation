@@ -41,8 +41,20 @@ class Model {
 public:
   Model() = default;
   Model(Material &material);
+  ~Model() {
+    for (auto &m : m_mesh) {
+      glDeleteVertexArrays(1, &m.m_VAO);
+      glDeleteBuffers(1, &m.m_VBO_pos);
+      glDeleteBuffers(1, &m.m_VBO_norm);
+      glDeleteBuffers(1, &m.m_VBO_tex);
+      glDeleteBuffers(1, &m.m_EBO);
+    }
+  }
 
-  void updatePosition(const glm::vec3 &new_position);
+  void updatePosition(const glm::vec3 &new_position) {
+    m_position = new_position;
+  };
+
   void calculateTemperature(float timestamp);
 
   std::vector<Mesh> &getMeshVec() { return m_mesh; }
